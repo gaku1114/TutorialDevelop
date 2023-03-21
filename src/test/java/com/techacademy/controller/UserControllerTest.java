@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,37 +65,31 @@ class UserControllerTest {
         assertEquals(user.getName(), "キラメキ太郎");
     }
 
-    private UserRepository userRepository;
-
-    @Autowired
-    void UserRepository(UserRepository repository) {
-        this.userRepository = repository;
-    }
 
     @Test
     @DisplayName("User一覧画面")
     @WithMockUser
     void testGetList() throws Exception {
         // HTTPリクエストに対するレスポンスの検証
-        mockMvc.perform(get("/user/list/")) // URLにアクセス
+        MvcResult result = mockMvc.perform(get("/user/list/")) // URLにアクセス
             .andExpect(status().isOk()) // ステータスを確認
             .andExpect(model().attributeExists("userlist")) // Modelの内容を確認
             .andExpect(model().hasNoErrors()) // Modelのエラー有無の確認
             .andExpect(view().name("user/list")) // viewの確認
             .andReturn(); // 内容の取得
 
-        assertEquals(userRepository.count(),3);
+        @SuppressWarnings("unchecked")
+        List<User> userlist = (List<User>)result.getModelAndView().getModel().get("userlist");
 
-        User user = userRepository.findById(1).get();
-        assertEquals(user.getId(), 1);
-        assertEquals(user.getName(), "キラメキ太郎");
+        assertEquals(userlist.size(),3);
 
-        User user2 = userRepository.findById(2).get();
-        assertEquals(user2.getId(), 2);
-        assertEquals(user2.getName(), "キラメキ次郎");
+        assertEquals(userlist.get(0).getId(), 1);
+        assertEquals(userlist.get(0).getName(), "キラメキ太郎");
 
-        User user3 = userRepository.findById(3).get();
-        assertEquals(user3.getId(), 3);
-        assertEquals(user3.getName(), "キラメキ花子");
+        assertEquals(userlist.get(1).getId(), 1);
+        assertEquals(userlist.get(1).getName(), "キラメキ次郎");
+
+        assertEquals(userlist.get(2).getId(), 1);
+        assertEquals(userlist.get(2).getName(), "キラメキ花子");
     }
 }
